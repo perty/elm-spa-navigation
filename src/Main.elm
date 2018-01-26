@@ -55,6 +55,8 @@ init location =
 
 type Route
     = HomeRoute
+    | ContactRoute
+    | LoginRoute
     | NotFound
 
 
@@ -64,11 +66,24 @@ type Route
 
 type Msg
     = FollowRoute Route
+    | ViewHomePage
+    | ViewContactPage
+    | ViewLoginPage
+
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case Debug.log "message" msg of
+        ViewHomePage ->
+            ( model, Navigation.newUrl "/" )
+
+        ViewContactPage ->
+            ( model, Navigation.newUrl "contact" )
+
+        ViewLoginPage ->
+            ( model, Navigation.newUrl "login" )
+
         FollowRoute route ->
             ( { model | route = route }, Cmd.none )
 
@@ -94,11 +109,6 @@ urlParser location =
                 FollowRoute route
 
 
-postsParser : UrlParser.Parser a a
-postsParser =
-    UrlParser.s "posts"
-
-
 homeParser : UrlParser.Parser a a
 homeParser =
     UrlParser.oneOf
@@ -106,11 +116,22 @@ homeParser =
         , UrlParser.s ""
         ]
 
+contactParser : UrlParser.Parser a a
+contactParser =
+    UrlParser.s "contact"
+
+loginParser : UrlParser.Parser a a
+loginParser =
+    UrlParser.s "login"
+
+
 
 routeParser : UrlParser.Parser (Route -> a) a
 routeParser =
     UrlParser.oneOf
         [ UrlParser.map HomeRoute homeParser
+        , UrlParser.map ContactRoute contactParser
+        , UrlParser.map LoginRoute loginParser
         ]
 
 
@@ -121,40 +142,55 @@ routeParser =
 view : Model -> Html Msg
 view model =
     div [ class "overflow-container" ]
-        [
-            div[] [ header ]
-            , navbar
-            ,div [] [selectPage model]
+        [ div [] [ header ]
+        , navbar
+        , div [] [ selectPage model ]
         ]
+
 
 header : Html Msg
-header  =
-    h1 [] [text "Header"]
+header =
+    h1 [] [ text "Header" ]
+
 
 navbar : Html Msg
-navbar  =
-    nav [ ]
-    [
-        ul [class "menu-bar"] [
-            li [onClick (FollowRoute HomeRoute)] [text "home"]
-            ,li [] [text "contact"]
-            ,li [class "menu-item-end"] [text "login"]
+navbar =
+    nav [ class "menu-bar" ]
+        [ div [ class "menu-item", onClick ViewHomePage ] [ text "home" ]
+        , div [ class "menu-item", onClick ViewContactPage ] [ text "contact" ]
+        , div [ class "menu-item menu-item-end", onClick ViewLoginPage ] [ text "login" ]
         ]
-    ]
+
 
 selectPage : Model -> Html Msg
 selectPage model =
     case model.route of
         HomeRoute ->
-            notImplementedYetPage model
+            homePage model
+
+        ContactRoute ->
+            contactPage model
+
+        LoginRoute ->
+            loginPage model
 
         NotFound ->
             notFoundPage model
 
 
-notImplementedYetPage : Model -> Html Msg
-notImplementedYetPage model =
-    div [] [ text ("This has not been implemented yet. ") ]
+homePage : Model -> Html Msg
+homePage model =
+    div [] [ text ("This is the home page. ") ]
+
+
+contactPage : Model -> Html Msg
+contactPage model =
+    div [] [ text ("This is the contact page. ") ]
+
+
+loginPage : Model -> Html Msg
+loginPage model =
+    div [] [ text ("This is the login page. ") ]
 
 
 notFoundPage : Model -> Html Msg
