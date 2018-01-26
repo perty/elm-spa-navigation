@@ -1,0 +1,24 @@
+
+html, body {
+    background-color: #31fcff;
+    margin: 10px;
+    height: 100%;
+}
+
+/* Menu bar*/
+
+.menu-bar {
+    display: flex;
+    border: 1px solid;
+}
+
+.menu-item-end {
+    margin-left: auto;
+}
+
+nav > ul > li {
+    padding: 1em;
+    text-align: center;
+    box-sizing: border-box;
+    list-style-type: none;
+}

@@ -1,8 +1,8 @@
 module Main exposing (..)
 
-import Html exposing (Html, div, input, label, text)
+import Html exposing (Html, div, input, label, text, h1, nav, ul, li)
 import Html.Attributes exposing (class, type_)
-import Html.Events exposing (onInput)
+import Html.Events exposing (onClick)
 import Navigation
 import UrlParser exposing ((</>))
 
@@ -68,7 +68,7 @@ type Msg
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    case msg of
+    case Debug.log "message" msg of
         FollowRoute route ->
             ( { model | route = route }, Cmd.none )
 
@@ -121,13 +121,35 @@ routeParser =
 view : Model -> Html Msg
 view model =
     div [ class "overflow-container" ]
-        [ case model.route of
-            HomeRoute ->
-                notImplementedYetPage model
-
-            NotFound ->
-                notFoundPage model
+        [
+            div[] [ header ]
+            , navbar
+            ,div [] [selectPage model]
         ]
+
+header : Html Msg
+header  =
+    h1 [] [text "Header"]
+
+navbar : Html Msg
+navbar  =
+    nav [ ]
+    [
+        ul [class "menu-bar"] [
+            li [onClick (FollowRoute HomeRoute)] [text "home"]
+            ,li [] [text "contact"]
+            ,li [class "menu-item-end"] [text "login"]
+        ]
+    ]
+
+selectPage : Model -> Html Msg
+selectPage model =
+    case model.route of
+        HomeRoute ->
+            notImplementedYetPage model
+
+        NotFound ->
+            notFoundPage model
 
 
 notImplementedYetPage : Model -> Html Msg
