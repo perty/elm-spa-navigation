@@ -41,8 +41,9 @@ init location =
     ( initialModel (findRouteOrGoHome location), Cmd.none )
 
 
+findRouteOrGoHome : Navigation.Location -> Route
 findRouteOrGoHome location =
-    case UrlParser.parsePath routeParser location of
+    case Debug.log "Landing on: " (UrlParser.parsePath routeParser location) of
         Nothing ->
             HomeRoute
 
@@ -56,6 +57,7 @@ findRouteOrGoHome location =
 
 type Route
     = HomeRoute
+    | PostRoute Int
     | ContactRoute
     | LoginRoute
     | NotFound
@@ -68,6 +70,7 @@ type Route
 type Msg
     = FollowRoute Route
     | ViewHomePage
+    | ViewPostPage Int
     | ViewContactPage
     | ViewLoginPage
 
@@ -78,17 +81,21 @@ type Msg
 -- value in the model. The route value controls the view.
 -- By doing this, we enable the browser history, bookmarks and show the url in the address bar.
 
+
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    case Debug.log "message" msg of
+    case Debug.log "Update message: " msg of
         ViewHomePage ->
             ( model, Navigation.newUrl "/" )
 
+        ViewPostPage post ->
+            ( model, Navigation.newUrl ("/post/" ++ toString post) )
+
         ViewContactPage ->
-            ( model, Navigation.newUrl "contact" )
+            ( model, Navigation.newUrl "/contact" )
 
         ViewLoginPage ->
-            ( model, Navigation.newUrl "login" )
+            ( model, Navigation.newUrl "/login" )
 
         FollowRoute route ->
             ( { model | route = route }, Cmd.none )
@@ -96,7 +103,6 @@ update msg model =
 
 
 -- PARSING
-
 -- The URL parser mentioned in the program entry point. Takes a Location and
 -- parse it to see where to go next.
 
@@ -126,6 +132,7 @@ routeParser : UrlParser.Parser (Route -> a) a
 routeParser =
     UrlParser.oneOf
         [ UrlParser.map HomeRoute homeParser
+        , UrlParser.map PostRoute postParser
         , UrlParser.map ContactRoute contactParser
         , UrlParser.map LoginRoute loginParser
         ]
@@ -137,6 +144,11 @@ homeParser =
         [ UrlParser.s "index.html"
         , UrlParser.s ""
         ]
+
+
+postParser : UrlParser.Parser (Int -> a) a
+postParser =
+    UrlParser.s "post" </> UrlParser.int
 
 
 contactParser : UrlParser.Parser a a
@@ -151,7 +163,6 @@ loginParser =
 
 
 -- VIEW
-
 -- In this example, we have a header at the top, a menu bar below and then the page specific content.
 
 
@@ -184,9 +195,12 @@ menuBar =
 
 selectPage : Model -> Html Msg
 selectPage model =
-    case model.route of
+    case Debug.log "Select page: " model.route of
         HomeRoute ->
             homePage model
+
+        PostRoute post ->
+            postPage model post
 
         ContactRoute ->
             contactPage model
@@ -200,7 +214,15 @@ selectPage model =
 
 homePage : Model -> Html Msg
 homePage model =
-    div [] [ text ("This is the home page. ") ]
+    div []
+        [ text ("This is the home page. ")
+        , theListOfPosts
+        ]
+
+
+postPage : Model -> Int -> Html Msg
+postPage model post =
+    div [] [ text ("This is the post number " ++ toString post) ]
 
 
 contactPage : Model -> Html Msg
@@ -216,6 +238,15 @@ loginPage model =
 notFoundPage : Model -> Html Msg
 notFoundPage model =
     div [] [ text "Not found" ]
+
+
+theListOfPosts =
+    div []
+        (List.map postLink (List.range 1 11))
+
+
+postLink n =
+    div [ onClick (ViewPostPage n) ] [ text ("Post number " ++ toString n) ]
 
 
 
