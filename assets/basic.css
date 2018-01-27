@@ -14,9 +14,13 @@ html, body {
 
 .menu-item {
     padding: 1em;
+    cursor: pointer;
 }
 
 .menu-item-end {
     margin-left: auto;
 }
 
+.clickable {
+    cursor: pointer;
+}

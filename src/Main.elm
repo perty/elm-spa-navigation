@@ -239,14 +239,14 @@ notFoundPage : Model -> Html Msg
 notFoundPage model =
     div [] [ text "Not found" ]
 
-
+theListOfPosts : Html Msg
 theListOfPosts =
     div []
         (List.map postLink (List.range 1 11))
 
-
+postLink : Int -> Html Msg
 postLink n =
-    div [ onClick (ViewPostPage n) ] [ text ("Post number " ++ toString n) ]
+    div [ class "clickable", onClick (ViewPostPage n) ] [ text ("Post number " ++ toString n) ]
 
 
 
