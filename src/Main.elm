@@ -32,21 +32,22 @@ initialModel route =
     }
 
 
+
+-- Start from a location, not necessarily "/".
+
+
 init : Navigation.Location -> ( Model, Cmd Msg )
 init location =
-    let
-        l =
-            Debug.log "init location" location
+    ( initialModel (findRouteOrGoHome location), Cmd.none )
 
-        route =
-            case UrlParser.parsePath routeParser location of
-                Nothing ->
-                    HomeRoute
 
-                Just route ->
-                    route
-    in
-        ( initialModel route, Cmd.none )
+findRouteOrGoHome location =
+    case UrlParser.parsePath routeParser location of
+        Nothing ->
+            HomeRoute
+
+        Just route ->
+            route
 
 
 
@@ -72,6 +73,11 @@ type Msg
 
 
 
+-- First we get the message to view a selected page. We set the URL by calling newUrl.
+-- The new URL is parsed which results in a new message FollowRoute that sets the route
+-- value in the model. The route value controls the view.
+-- By doing this, we enable the browser history, bookmarks and show the url in the address bar.
+
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case Debug.log "message" msg of
@@ -91,6 +97,9 @@ update msg model =
 
 -- PARSING
 
+-- The URL parser mentioned in the program entry point. Takes a Location and
+-- parse it to see where to go next.
+
 
 urlParser : Navigation.Location -> Msg
 urlParser location =
@@ -109,21 +118,8 @@ urlParser location =
                 FollowRoute route
 
 
-homeParser : UrlParser.Parser a a
-homeParser =
-    UrlParser.oneOf
-        [ UrlParser.s "index.html"
-        , UrlParser.s ""
-        ]
 
-contactParser : UrlParser.Parser a a
-contactParser =
-    UrlParser.s "contact"
-
-loginParser : UrlParser.Parser a a
-loginParser =
-    UrlParser.s "login"
-
+-- Try all parsers we have. The first parser to say yes will determine the route value.
 
 
 routeParser : UrlParser.Parser (Route -> a) a
@@ -135,31 +131,55 @@ routeParser =
         ]
 
 
+homeParser : UrlParser.Parser a a
+homeParser =
+    UrlParser.oneOf
+        [ UrlParser.s "index.html"
+        , UrlParser.s ""
+        ]
+
+
+contactParser : UrlParser.Parser a a
+contactParser =
+    UrlParser.s "contact"
+
+
+loginParser : UrlParser.Parser a a
+loginParser =
+    UrlParser.s "login"
+
+
 
 -- VIEW
+
+-- In this example, we have a header at the top, a menu bar below and then the page specific content.
 
 
 view : Model -> Html Msg
 view model =
     div [ class "overflow-container" ]
-        [ div [] [ header ]
-        , navbar
-        , div [] [ selectPage model ]
+        [ header
+        , menuBar
+        , selectPage model
         ]
 
 
 header : Html Msg
 header =
-    h1 [] [ text "Header" ]
+    div [] [ h1 [] [ text "Header" ] ]
 
 
-navbar : Html Msg
-navbar =
+menuBar : Html Msg
+menuBar =
     nav [ class "menu-bar" ]
         [ div [ class "menu-item", onClick ViewHomePage ] [ text "home" ]
         , div [ class "menu-item", onClick ViewContactPage ] [ text "contact" ]
         , div [ class "menu-item menu-item-end", onClick ViewLoginPage ] [ text "login" ]
         ]
+
+
+
+-- Determine the page based on the route value
 
 
 selectPage : Model -> Html Msg
@@ -200,6 +220,7 @@ notFoundPage model =
 
 
 -- SUBSCRIPTIONS
+-- No subscriptions
 
 
 subscriptions : Model -> Sub Msg
